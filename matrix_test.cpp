@@ -1,49 +1,135 @@
-﻿// matrix_test.cpp : Defines the entry point for the application.
-//
-
-#include "matrix_test.h"
+﻿#include "matrix_test.h"
 
 #include <cassert>
 #include <sstream>
+#include <tuple>
+#include <utility>
+#include <vector>
 
-using namespace std;
+#include "matrix/matrix.hpp"
+
+template class SimpleMatrix<int>;
+
+void init_matrix_test() {
+  SimpleMatrix<int> empty;
+  assert(empty.empty());
+
+  {
+    vv<int> const v{{0, 1, 2, 3}, {4, 5, 6, 7}};
+    SimpleMatrix<int> rect(v);
+    [[maybe_unused]] auto const [m, n] = rect.size();
+    assert(m == 2 && n == 4);
+  }
+
+  {
+    vv<int> const v{{0, 1}, {2, 3}, {4, 5}, {6, 7}};
+    SimpleMatrix<int> rect(v);
+    [[maybe_unused]] auto const [m, n] = rect.size();
+    assert(m == 4 && n == 2);
+  }
+}
+
+void init_non_normal_test() {
+  {
+    vv<int> const non_normalized_data{{1}, {1, 2}};
+    SimpleMatrix<int> filled_normalize(non_normalized_data);
+    assert(filled_normalize == SimpleMatrix<int>({{1, 0}, {1, 2}}));
+  }
+
+  {
+    vv<int> const non_normalized_data{{1}, {}, {1, 2}};
+    SimpleMatrix<int> filled_normalize(non_normalized_data);
+    assert(filled_normalize == SimpleMatrix<int>({{1, 0}, {0, 0}, {1, 2}}));
+  }
+}
+
+void assign_test() {
+  SimpleMatrix<int> filled({{0, 1, 2, 3}, {4, 5, 6, 7}});
+  auto test_copy = filled;
+  assert(test_copy.size() == filled.size() && !filled.empty());
+}
+
+void move_test() {
+  SimpleMatrix<int> filled({{0, 1, 2, 3}, {4, 5, 6, 7}});
+  auto m_test_move = std::move(filled);
+  assert(!m_test_move.empty() && filled.empty());
+}
+
+void foreach_test() {
+  vv<int> const matrix_data{{0, 1, 2, 3}, {4, 5, 6, 7}};
+
+  SimpleMatrix<int> m(matrix_data);
+  std::stringstream ss;
+  for (auto& v : m) {
+    ss << v << " ";
+  }
+
+  assert(ss.str() == [&]() {
+    size_t matrix_data_size{0};
+    std::string test_str;
+
+    for (auto const& cur : matrix_data) matrix_data_size += cur.size();
+
+    for (auto const& cur : matrix_data)
+      for (auto const& el : cur) test_str += std::to_string(el) + " ";
+
+    return test_str;
+  }());
+}
+
+void foreach_mod_test() {
+  SimpleMatrix<int> m({{0, 1, 2, 3}, {4, 5, 6, 7}});
+  for (auto& v : m) {
+    v = 1;
+  }
+  assert(SimpleMatrix<int>({{1, 1, 1, 1}, {1, 1, 1, 1}}) == m);
+}
+
+void concat_test() {
+  SimpleMatrix<int> a({{0, 1, 2, 3}, {4, 5, 6, 7}, {8, 9, 10, 11}});
+  SimpleMatrix<int> b({{-1, -2}, {-3, -4}});
+  auto d = a | b;
+  assert(SimpleMatrix<int>({{0, 1, 2, 3, -1, -2},
+                            {4, 5, 6, 7, -3, -4},
+                            {8, 9, 10, 11, 0, 0}}) == d);
+}
+
+void access_el_test() {
+  assert(SimpleMatrix<int>({{1, 2}, {3, 4}})[1][1] == 4);
+}
+
+void access_el_mod_test() {
+  auto m{SimpleMatrix<int>({{1, 2}, {3, 4}})};
+  m[1][1] = 7;
+
+  assert(SimpleMatrix<int>({{1, 2}, {3, 7}}) == m);
+}
+
+void sum_test() {
+  auto a{SimpleMatrix<int>({{1, 2}, {3, 4}, {5, 6}})};
+  auto b{SimpleMatrix<int>({{2, 2, 2, 2}, {3, 3, 3, 3}})};
+
+  auto c = a + b;
+
+  assert(SimpleMatrix<int>({{3, 4, 2, 2}, {6, 7, 3, 3}, {5, 6, 0, 0}}) == c);
+}
 
 int main() {
-  cout << "Hello CMake." << endl;
+  init_matrix_test();
+  init_non_normal_test();
 
-  std::vector<std::vector<int>> const matrix = {
-      {0, 1, 2, 3}, {4, 5, 6, 7}, {8, 9, 10, 11}};
+  assign_test();
+  move_test();
 
-  std::string const test_elements = "1 2 3 4 5 6 7 8 9 10 11";
+  foreach_test();
+  foreach_mod_test();
 
-  SimpleMatrix<int> m_empty;
-  SimpleMatrix<int> m_filled(matrix);
-  SimpleMatrix<int> m_filled_bad({{1}, {1, 2}});
-  assert(m_filled_bad.empty());
+  concat_test();
 
-  auto m_test_copy = m_filled;
-  assert(m_test_copy.size() == m_filled.size());
+  access_el_test();
+  access_el_mod_test();
 
-  auto m_test_move = std::move(m_filled);
-  assert(!m_test_move.empty() && m_filled.empty());
-
-  {
-    std::stringstream ss;
-    for (auto& v : m_test_move) {
-      ss << v;
-    }
-    assert(ss.str() == test_elements);
-  }
-
-  {
-    std::stringstream ss;
-    for (auto const& v : m_test_move) {
-      std::cout << v << '\n';
-    }
-    assert(ss.str() == test_elements);
-  }
-
-
+  sum_test();
 
   return 0;
-};
+}
