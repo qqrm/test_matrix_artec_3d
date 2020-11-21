@@ -103,8 +103,8 @@ void foreach_mod_test() {
 }
 
 void concat_test() {
-  SimpleMatrix<int> a({{0, 1, 2, 3}, {4, 5, 6, 7}, {8, 9, 10, 11}});
-  SimpleMatrix<int> b({{-1, -2}, {-3, -4}});
+  auto const a = SimpleMatrix<int>({{0, 1, 2, 3}, {4, 5, 6, 7}, {8, 9, 10, 11}});
+  auto const b = SimpleMatrix<int>({{-1, -2}, {-3, -4}});
   auto d = a | b;
   assert(SimpleMatrix<int>({{0, 1, 2, 3, -1, -2},
                             {4, 5, 6, 7, -3, -4},
@@ -123,8 +123,8 @@ void access_el_mod_test() {
 }
 
 void sum_test() {
-  auto a{SimpleMatrix<int>({{1, 2}, {3, 4}, {5, 6}})};
-  auto b{SimpleMatrix<int>({{2, 2, 2, 2}, {3, 3, 3, 3}})};
+  auto const a{SimpleMatrix<int>({{1, 2}, {3, 4}, {5, 6}})};
+  auto const b{SimpleMatrix<int>({{2, 2, 2, 2}, {3, 3, 3, 3}})};
 
   auto c = a + b;
 

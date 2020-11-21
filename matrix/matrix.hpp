@@ -45,7 +45,9 @@ class SimpleMatrix {
   class AccessProxy;
 
   SimpleMatrix() = default;
-  SimpleMatrix(SimpleMatrix const&) = default;
+  SimpleMatrix(SimpleMatrix const& r) : _data(r._data) {
+    _sizes.set(r.m(), r.n());
+  };
   SimpleMatrix(v<T> const& vec, size_t const n);
   SimpleMatrix(vv<T> const& vecs);
   SimpleMatrix(SimpleMatrix& matrix)
@@ -57,7 +59,7 @@ class SimpleMatrix {
   }
   SimpleMatrix(SimpleMatrix&& matrix) noexcept = default;
   SimpleMatrix& operator=(SimpleMatrix&&) noexcept = default;
-  SimpleMatrix operator|(SimpleMatrix r);
+  SimpleMatrix operator|(SimpleMatrix r) const;
   AccessProxy operator[](size_t const m);
 
   SimpleMatrix operator+(const SimpleMatrix<T>& r) const;
@@ -192,26 +194,28 @@ void SimpleMatrix<T>::add_zero_rows(size_t const count) {
 }
 
 template <class T>
-SimpleMatrix<T> SimpleMatrix<T>::operator|(SimpleMatrix<T> r) {
+SimpleMatrix<T> SimpleMatrix<T>::operator|(SimpleMatrix<T> r) const {
+  SimpleMatrix<T> l(*this);
+
   if (int const diff_m{static_cast<int>(m()) - static_cast<int>(r.m())};
       diff_m < 0) {
-    add_zero_rows(abs(diff_m));
+    l.add_zero_rows(abs(diff_m));
   } else {
     r.add_zero_rows(abs(diff_m));
   }
 
   std::vector<T> temp;
-  auto const temp_size{_data.size() + r._data.size()};
+  auto const temp_size{l._data.size() + r._data.size()};
   temp.reserve(temp_size);
 
-  auto current_start{begin()};
-  auto current_end{begin()};
+  auto current_start{l.begin()};
+  auto current_end{l.begin()};
 
   auto b_start{r.begin()};
   auto b_end{r.begin()};
 
   while (true) {
-    if (current_end != end()) {
+    if (current_end != l.end()) {
       std::advance(current_end, n());
       temp.insert(temp.end(), current_start, current_end);
       current_start = current_end;
@@ -228,7 +232,7 @@ SimpleMatrix<T> SimpleMatrix<T>::operator|(SimpleMatrix<T> r) {
     }
   }
 
-  SimpleMatrix<T> temp_matrix(std::move(temp), n() + r.n());
+  SimpleMatrix<T> temp_matrix(std::move(temp), l.n() + r.n());
   temp_matrix.only_debug_sync_check();
 
   return temp_matrix;
