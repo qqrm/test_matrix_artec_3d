@@ -48,7 +48,15 @@ class SimpleMatrix {
   SimpleMatrix(SimpleMatrix const&) = default;
   SimpleMatrix(v<T> const& vec, size_t const n);
   SimpleMatrix(vv<T> const& vecs);
-  SimpleMatrix(SimpleMatrix&& matrix) noexcept;
+  SimpleMatrix(SimpleMatrix& matrix)
+      : _data(matrix._data), _sizes(matrix._sizes) {}
+  SimpleMatrix& operator=(SimpleMatrix const& r) {
+    _data = r._data;
+    _sizes = r._sizes;
+    return *this;
+  }
+  SimpleMatrix(SimpleMatrix&& matrix) noexcept = default;
+  SimpleMatrix& operator=(SimpleMatrix&&) noexcept = default;
   SimpleMatrix operator|(SimpleMatrix r);
   AccessProxy operator[](size_t const m);
 
@@ -140,6 +148,21 @@ class SimpleMatrix<T>::MatrixSize {
 
  public:
   MatrixSize(size_t const m, size_t const n) : _m(m), _n(n) {}
+  MatrixSize& operator=(MatrixSize const& r) {
+    _m = r._m;
+    _n = r._n;
+    return *this;
+  }
+  MatrixSize(MatrixSize& size) : _m(size._m), _n(size._n) {}
+  MatrixSize(MatrixSize&& size) noexcept : _m(size._m), _n(size._n) {
+    size.clean();
+  }
+  MatrixSize& operator=(MatrixSize&& size) noexcept {
+    _m = size._m;
+    _n = size._n;
+    size.clean();
+    return *this;
+  }
 
   size_t m() const { return _m; };
   size_t n() const { return _n; };
@@ -232,15 +255,6 @@ SimpleMatrix<T>::SimpleMatrix(vv<T> const& vecs) {
       _data.insert(_data.end(), diff, 0);
     }
   }
-
-  only_debug_sync_check();
-}
-
-template <class T>
-SimpleMatrix<T>::SimpleMatrix(SimpleMatrix<T>&& matrix) noexcept
-    : _data(std::move(matrix._data)) {
-  _sizes = matrix._sizes;
-  matrix._sizes.clean();
 
   only_debug_sync_check();
 }
