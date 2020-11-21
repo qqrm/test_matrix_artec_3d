@@ -27,6 +27,23 @@ void init_matrix_test() {
     [[maybe_unused]] auto const [m, n] = rect.size();
     assert(m == 4 && n == 2);
   }
+
+  {
+    vv<int> v{{0, 1}, {2, 3}, {4, 5}, {6, 7}};
+    SimpleMatrix<int> a(v);
+    SimpleMatrix<int> b;
+    b = std::move(a);
+    assert(a.empty());
+    [[maybe_unused]] auto const [m, n] = b.size();
+    assert(m == 4 && n == 2);
+  }
+
+   {
+     SimpleMatrix<int> bad_init1({0, 1}, 7);
+     SimpleMatrix<int> bad_init2({0, 1}, 2);
+     SimpleMatrix<int> bad_init3({0, 1}, 3);
+     SimpleMatrix<int> bad_init4({0, 1, 2, 3, 4}, 4);
+  }
 }
 
 void init_non_normal_test() {

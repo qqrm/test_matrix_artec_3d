@@ -87,7 +87,7 @@ class SimpleMatrix {
   void print() const {
     for (size_t i = 0; i < m(); i++) {
       for (size_t j = 0; j < n(); j++) {
-        std::cout << TryGet(i, j).value() << " ";
+        std::cout << TryGet(i, j).value_or(0) << " ";
       }
       std::cout << "\n";
     }
@@ -235,8 +235,39 @@ SimpleMatrix<T> SimpleMatrix<T>::operator|(SimpleMatrix<T> r) {
 }
 
 template <class T>
-SimpleMatrix<T>::SimpleMatrix(v<T> const& vec, size_t const n)
-    : _data(vec), _sizes(vec.empty() ? 0 : vec.size() / n, n) {}
+SimpleMatrix<T>::SimpleMatrix(v<T> const& vec, size_t const n) {
+  if (vec.empty() || n == vec.size()) {
+    _data = vec;
+    _sizes.set(1, n);
+    only_debug_sync_check();
+    return;
+  }
+
+  if (n > vec.size()) {
+    v<T> temp = vec;
+    temp.resize(n);
+    _data = temp;
+    _sizes.set(1, n);
+    only_debug_sync_check();
+    return;
+  }
+
+  size_t m = (vec.size() % n) ? (vec.size() / n + 1) : (vec.size() / n);
+  size_t last = vec.size() % m;
+
+  if (last == 0) {
+    _data = vec;
+    _sizes.set(m, n);
+    only_debug_sync_check();
+    return;
+  }
+
+  v<T> temp = vec;
+  temp.insert(temp.end(), n - last, 0);
+  _data = temp;
+  _sizes.set(m, n);
+  only_debug_sync_check();
+}
 
 template <class T>
 SimpleMatrix<T>::SimpleMatrix(vv<T> const& vecs) {
