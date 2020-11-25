@@ -138,7 +138,7 @@ class SimpleMatrix<T>::AccessProxy {
 
  public:
   AccessProxy() = default;
-  set(vit<T> i){_i = i;}
+  void set(vit<T> i) {_i = i;}
   T& operator[](size_t const n) {
     std::advance(_i, n);
     return *_i;
