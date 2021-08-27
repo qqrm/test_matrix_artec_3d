@@ -220,14 +220,64 @@ void sum_test()
 
     auto c = matrix_ops::sum(a, b);
 
-    c.print();
-
     Matrix3x5 res{
         0, 2, 4, 3, 4,
         10, 12, 14, 8, 9,
         8, 7, 6, 0, 0};
 
     assert(res == c);
+  }
+}
+
+void oper_plus_test()
+{
+  {
+    Matrix3x5 a{
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9,
+        8, 7, 6, 5, 4};
+
+    a = a + a;
+
+    Matrix3x5 res{
+        0, 2, 4, 6, 8,
+        10, 12, 14, 16, 18,
+        16, 14, 12, 10, 8};
+
+    assert(a == res);
+  }
+
+  {
+    Matrix3x5 a{
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9,
+        8, 7, 6, 5, 4};
+
+    auto a_c = a;
+
+    a = a + a + a;
+
+    Matrix3x5 res = a_c * 3;
+
+    assert(a == res);
+  }
+
+  {
+    SimpleMatrix<int, 2, 5> a{
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9};
+
+    SimpleMatrix<int, 2, 5> b{
+        7, 4, 2, 8, 4,
+        5, 1, 3, 8, 9};
+
+    auto c = a + b;
+
+    SimpleMatrix<int, 2, 5> res{
+        7, 5, 4, 11, 8,
+        10, 7, 10, 16, 18};
+
+    assert(c == res);
   }
 }
 
@@ -250,6 +300,8 @@ int main()
   resize_test();
 
   sum_test();
+
+  oper_plus_test();
 
   return 0;
 }

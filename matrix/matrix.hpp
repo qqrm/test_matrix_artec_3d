@@ -21,7 +21,7 @@ class AccessProxy
 public:
   AccessProxy() = default;
   void set(std::vector<T>::iterator i) { _i = i; }
-  T &operator[](size_t const n)
+  constexpr T &operator[](size_t const n)
   {
     assert(n < COL);
     std::advance(_i, n);
@@ -74,6 +74,25 @@ public:
     return _proxy;
   }
 
+  friend SimpleMatrix operator+(SimpleMatrix lhs, const SimpleMatrix &rhs)
+  {
+    for (size_t i{0}; i < ROW; i++)
+    {
+      for (size_t j{0}; j < COL; j++)
+      {
+        lhs._data[i * COL + j] = lhs._data[i * COL + j] + rhs._data[i * COL + j];
+      }
+    }
+    return lhs;
+  }
+
+  friend SimpleMatrix operator*(SimpleMatrix lhs, const T n)
+  {
+    std::transform(lhs._data.begin(), lhs._data.end(), lhs._data.begin(), [n](auto el) -> T
+                   { return el * n; });
+    return lhs;
+  }
+
   auto cbegin() const { return _data.cbegin(); }
   auto cend() const { return _data.cend(); }
 
@@ -92,33 +111,6 @@ public:
     }
     std::cout << "\n";
   }
-};
-
-template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
-auto concat(SimpleMatrix<T, ROW1, COL1> a, SimpleMatrix<T, ROW2, COL2> b)
-{
-  size_t const ROW3 = std::max(ROW1, ROW2);
-  size_t const COL3 = COL1 + COL2;
-
-  SimpleMatrix<T, ROW3, COL3> result;
-
-  for (size_t i{0}; i < ROW1; i++)
-  {
-    for (size_t j{0}; j < COL1; j++)
-    {
-      result[i][j] = a[i][j];
-    }
-  }
-
-  for (size_t i{0}; i < ROW2; i++)
-  {
-    for (size_t j{0}; j < COL2; j++)
-    {
-      result[i][COL1 + j] = b[i][j];
-    }
-  }
-
-  return result;
 };
 
 namespace matrix_ops
