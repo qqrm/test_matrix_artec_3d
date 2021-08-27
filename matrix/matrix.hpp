@@ -11,286 +11,204 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include <initializer_list>
 
-template <class T>
-using v = std::vector<T>;
+template <class T, size_t COL>
+class AccessProxy
+{
+  std::vector<T>::iterator _i;
 
-template <class T>
-using vv = v<v<T>>;
-
-template <class T>
-using vit = typename v<T>::iterator;
-
-template <class T>
-class SimpleMatrix {
-  class MatrixSize;
-
-  v<T> _data;
-  MatrixSize _sizes{0, 0};
-
-  void add_zero_rows(size_t const count);
-  void only_debug_sync_check() const;
-
- public:
-  class AccessProxy;
-  AccessProxy _proxy;
-
-  SimpleMatrix() = default;
-  SimpleMatrix(SimpleMatrix const& r) : _data(r._data) {
-    _sizes.set(r.m(), r.n());
-  };
-  SimpleMatrix(v<T> const& vec, size_t const n);
-  SimpleMatrix(vv<T> const& vecs);
-  SimpleMatrix(SimpleMatrix& matrix)
-      : _data(matrix._data), _sizes(matrix._sizes) {}
-  SimpleMatrix& operator=(SimpleMatrix const& r) {
-    _data = r._data;
-    _sizes = r._sizes;
-    return *this;
+public:
+  AccessProxy() = default;
+  void set(std::vector<T>::iterator i) { _i = i; }
+  T &operator[](size_t const n)
+  {
+    assert(n < COL);
+    std::advance(_i, n);
+    return *_i;
   }
-  SimpleMatrix(SimpleMatrix&& matrix) noexcept = default;
-  SimpleMatrix& operator=(SimpleMatrix&&) noexcept = default;
-  SimpleMatrix operator|(SimpleMatrix r) const;
-  AccessProxy operator[](size_t const m);
+};
+template <class T, size_t ROW, size_t COL>
+class SimpleMatrix
+{
+  std::vector<T> _data;
 
-  SimpleMatrix operator+(const SimpleMatrix<T>& r) const;
+public:
+  AccessProxy<T, COL> _proxy;
 
-  std::optional<T> TryGet(size_t const m, size_t const n) const;
-
-  bool operator==(const SimpleMatrix<T>& rhs) const {
-    return _data == rhs._data && size() == rhs.size();
+  SimpleMatrix() : _data(ROW * COL){};
+  explicit SimpleMatrix(std::initializer_list<T> init_list) : _data(init_list)
+  {
+    assert(init_list.size() == ROW * COL);
   }
 
-  bool operator!=(const SimpleMatrix<T>& rhs) const {
-    return _data != rhs._data || size() != rhs.size();
+  SimpleMatrix(const SimpleMatrix &m)
+  {
+    _data = m._data;
   }
 
-  size_t m() const { return _sizes.m(); };
-  size_t n() const { return _sizes.n(); };
+  SimpleMatrix &operator=(SimpleMatrix const &r) = default;
+  SimpleMatrix(SimpleMatrix &&m) noexcept = default;
+  SimpleMatrix &operator=(SimpleMatrix &&m) noexcept = default;
 
-  std::tuple<size_t, size_t> size() const { return {m(), n()}; };
-  bool empty() const { return _sizes.empty(); };
-  auto cbegin() const { return _data.cbegin(); };
-  auto cend() const { return _data.cend(); };
+  constexpr T const &at(size_t const r, size_t const c) const
+  {
+    return _data.at(r * COL + c);
+  }
 
-  auto begin() { return _data.begin(); };
-  auto end() { return _data.end(); };
+  bool operator==(const SimpleMatrix &rhs) const
+  {
+    return _data == rhs._data;
+  }
 
-#ifndef NDEBUG
-  void print() const {
-    for (size_t i = 0; i < m(); i++) {
-      for (size_t j = 0; j < n(); j++) {
-        std::cout << TryGet(i, j).value_or(0) << " ";
+  bool operator!=(const SimpleMatrix &rhs) const
+  {
+    return _data != rhs._data;
+  }
+
+  AccessProxy<T, COL> operator[](size_t const m)
+  {
+    auto it = _data.begin();
+    std::advance(it, m * COL);
+    _proxy.set(it);
+    return _proxy;
+  }
+
+  auto cbegin() const { return _data.cbegin(); }
+  auto cend() const { return _data.cend(); }
+
+  auto begin() { return _data.begin(); }
+  auto end() { return _data.end(); }
+
+  void print() const
+  {
+    for (size_t i{0}; i < ROW; i++)
+    {
+      for (size_t j{0}; j < COL; j++)
+      {
+        std::cout << _data[i * COL + j] << " ";
       }
       std::cout << "\n";
     }
     std::cout << "\n";
   }
-#endif
 };
 
-template <class T>
-std::optional<T> SimpleMatrix<T>::TryGet(size_t const m, size_t const n) const {
-  if (m < this->m() && n < this->n()) {
-    return _data[m * this->n() + n];
+template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
+auto concat(SimpleMatrix<T, ROW1, COL1> a, SimpleMatrix<T, ROW2, COL2> b)
+{
+  size_t const ROW3 = std::max(ROW1, ROW2);
+  size_t const COL3 = COL1 + COL2;
+
+  SimpleMatrix<T, ROW3, COL3> result;
+
+  for (size_t i{0}; i < ROW1; i++)
+  {
+    for (size_t j{0}; j < COL1; j++)
+    {
+      result[i][j] = a[i][j];
+    }
   }
 
-  return {};
-}
+  for (size_t i{0}; i < ROW2; i++)
+  {
+    for (size_t j{0}; j < COL2; j++)
+    {
+      result[i][COL1 + j] = b[i][j];
+    }
+  }
 
-template <class T>
-SimpleMatrix<T> SimpleMatrix<T>::operator+(const SimpleMatrix<T>& r) const {
-  size_t m{std::max(this->m(), r.m())};
-  size_t n{std::max(this->n(), r.n())};
+  return result;
+};
 
-  SimpleMatrix temp(v<T>(m * n, 0), n);
+namespace matrix_ops
+{
+  template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
+  auto concat(SimpleMatrix<T, ROW1, COL1> a, SimpleMatrix<T, ROW2, COL2> b)
+  {
+    size_t const ROW3 = std::max(ROW1, ROW2);
+    size_t const COL3 = COL1 + COL2;
 
-  for (size_t i = 0; i < m; i++) {
-    for (size_t j = 0; j < n; j++) {
-      T sum{0};
-      if (std::optional<T> el = this->TryGet(i, j); el.has_value()) {
-        sum += el.value();
+    SimpleMatrix<T, ROW3, COL3> result;
+
+    for (size_t i{0}; i < ROW1; i++)
+    {
+      for (size_t j{0}; j < COL1; j++)
+      {
+        result[i][j] = a[i][j];
       }
+    }
 
-      if (std::optional<T> el = r.TryGet(i, j); el.has_value()) {
-        sum += el.value();
+    for (size_t i{0}; i < ROW2; i++)
+    {
+      for (size_t j{0}; j < COL2; j++)
+      {
+        result[i][COL1 + j] = b[i][j];
       }
-      temp[i][j] = sum;
-    }
-  }
-  temp.only_debug_sync_check();
-  return temp;
-}
-
-template <class T>
-class SimpleMatrix<T>::AccessProxy {
-  vit<T> _i;
-
- public:
-  AccessProxy() = default;
-  void set(vit<T> i) {_i = i;}
-  T& operator[](size_t const n) {
-    std::advance(_i, n);
-    return *_i;
-  }
-};
-
-template <class T>
-class SimpleMatrix<T>::MatrixSize {
-  size_t _m{0};  // row count
-  size_t _n{0};  // column count
-
- public:
-  MatrixSize(size_t const m, size_t const n) : _m(m), _n(n) {}
-  MatrixSize& operator=(MatrixSize const& r) {
-    _m = r._m;
-    _n = r._n;
-    return *this;
-  }
-  MatrixSize(MatrixSize& size) : _m(size._m), _n(size._n) {}
-  MatrixSize(MatrixSize&& size) noexcept : _m(size._m), _n(size._n) {
-    size.clean();
-  }
-  MatrixSize& operator=(MatrixSize&& size) noexcept {
-    _m = size._m;
-    _n = size._n;
-    size.clean();
-    return *this;
-  }
-
-  size_t m() const { return _m; };
-  size_t n() const { return _n; };
-  void set(size_t const m, size_t const n) {
-    _m = m;
-    _n = n;
-  }
-  void clean() { set(0, 0); }
-  bool empty() const { return _m == 0 && _n == 0; }
-};
-
-template <class T>
-void SimpleMatrix<T>::only_debug_sync_check() const {
-#ifndef NDEBUG
-  assert(_data.size() == m() * n());
-#endif
-}
-
-template <class T>
-void SimpleMatrix<T>::add_zero_rows(size_t const count) {
-  _data.insert(_data.end(), count * n(), 0);
-
-  auto const [m, n] = size();
-  _sizes.set(m + count, n);
-
-  only_debug_sync_check();
-}
-
-template <class T>
-SimpleMatrix<T> SimpleMatrix<T>::operator|(SimpleMatrix<T> r) const {
-  SimpleMatrix<T> l(*this);
-
-  if (int const diff_m{static_cast<int>(m()) - static_cast<int>(r.m())};
-      diff_m < 0) {
-    l.add_zero_rows(abs(diff_m));
-  } else {
-    r.add_zero_rows(abs(diff_m));
-  }
-
-  std::vector<T> temp;
-  auto const temp_size{l._data.size() + r._data.size()};
-  temp.reserve(temp_size);
-
-  auto current_start{l.begin()};
-  auto current_end{l.begin()};
-
-  auto b_start{r.begin()};
-  auto b_end{r.begin()};
-
-  while (true) {
-    if (current_end != l.end()) {
-      std::advance(current_end, n());
-      temp.insert(temp.end(), current_start, current_end);
-      current_start = current_end;
     }
 
-    if (b_end != r._data.end()) {
-      std::advance(b_end, r.n());
-      temp.insert(temp.end(), b_start, b_end);
-      b_start = b_end;
+    return result;
+  };
+
+  template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
+  auto mul(SimpleMatrix<T, ROW1, COL1> a, SimpleMatrix<T, ROW2, COL2> b)
+  {
+    static_assert(ROW2 == COL1);
+
+    size_t const ROW3 = ROW1;
+    size_t const COL3 = COL2;
+
+    SimpleMatrix<T, ROW3, COL3> result;
+
+    for (size_t i{0}; i < ROW1; ++i)
+    {
+      for (size_t j{0}; j < COL2; ++j)
+      {
+        for (size_t k{0}; k < COL1; ++k)
+        {
+          result[i][j] += a[i][k] * b[k][j];
+        }
+      }
     }
 
-    if (temp.size() == temp_size) {
-      break;
+    return result;
+  };
+
+  template <size_t NEW_ROW, size_t NEW_COL, class T, size_t ROW, size_t COL>
+  auto resize(SimpleMatrix<T, ROW, COL> m)
+  {
+    SimpleMatrix<T, NEW_ROW, NEW_COL> result;
+
+    for (size_t i{0}; i < ROW; i++)
+    {
+      for (size_t j{0}; j < COL; j++)
+      {
+        result[i][j] = m[i][j];
+      }
     }
+
+    return result;
   }
 
-  SimpleMatrix<T> temp_matrix(std::move(temp), l.n() + r.n());
-  temp_matrix.only_debug_sync_check();
+  template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
+  auto sum(SimpleMatrix<T, ROW1, COL1> _a, SimpleMatrix<T, ROW2, COL2> _b)
+  {
+    size_t const ROW3 = std::max(ROW1, ROW2);
+    size_t const COL3 = std::max(COL1, COL2);
 
-  return temp_matrix;
-}
+    auto a = resize<ROW3, COL3>(_a);
+    auto b = resize<ROW3, COL3>(_b);
 
-template <class T>
-SimpleMatrix<T>::SimpleMatrix(v<T> const& vec, size_t const n) {
-  if (vec.empty() || n == vec.size()) {
-    _data = vec;
-    _sizes.set(1, n);
-    only_debug_sync_check();
-    return;
-  }
+    SimpleMatrix<T, ROW3, COL3> result;
 
-  if (n > vec.size()) {
-    v<T> temp = vec;
-    temp.resize(n);
-    _data = temp;
-    _sizes.set(1, n);
-    only_debug_sync_check();
-    return;
-  }
-
-  size_t m = (vec.size() % n) ? (vec.size() / n + 1) : (vec.size() / n);
-  size_t last = vec.size() % m;
-
-  if (last == 0) {
-    _data = vec;
-    _sizes.set(m, n);
-    only_debug_sync_check();
-    return;
-  }
-
-  v<T> temp = vec;
-  temp.insert(temp.end(), n - last, 0);
-  _data = temp;
-  _sizes.set(m, n);
-  only_debug_sync_check();
-}
-
-template <class T>
-SimpleMatrix<T>::SimpleMatrix(vv<T> const& vecs) {
-  size_t max_size{0};
-
-  for (auto const& cur : vecs) {
-    max_size = std::max(max_size, cur.size());
-  }
-
-  _data.reserve(max_size * vecs.size());
-  _sizes.set(vecs.size(), max_size);
-
-  for (auto const& cur : vecs) {
-    _data.insert(_data.end(), cur.begin(), cur.end());
-    if (auto diff = max_size - cur.size(); diff > 0) {
-      _data.insert(_data.end(), diff, 0);
+    for (size_t i{0}; i < ROW3; i++)
+    {
+      for (size_t j{0}; j < COL3; j++)
+      {
+        result[i][j] = a[i][j] + b[i][j];
+      }
     }
-  }
 
-  only_debug_sync_check();
-}
-
-template <class T>
-typename SimpleMatrix<T>::AccessProxy SimpleMatrix<T>::operator[](
-    size_t const m) {
-  auto it = _data.begin();
-  std::advance(it, m * n());
-  _proxy.set(it);
-  return _proxy;
+    return result;
+  };
 }
