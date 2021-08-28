@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cassert>
-// #include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <iterator>
@@ -11,8 +10,9 @@
 #include <vector>
 #include <initializer_list>
 #include <compare>
+#include <exception>
 
-template <class T, size_t COL>
+template <class T, size_t ROW, size_t COL>
 class AccessProxy
 {
   std::vector<T>::iterator i_;
@@ -22,7 +22,10 @@ public:
   void set(std::vector<T>::iterator i) { i_ = i; }
   constexpr T &operator[](size_t const n)
   {
-    assert(n < COL);
+    if (n >= COL)
+    {
+      throw std::out_of_range("n >= COL");
+    }
     std::advance(i_, n);
     return *i_;
   }
@@ -32,13 +35,16 @@ class SimpleMatrix
 {
   std::vector<T> data_;
 
-  AccessProxy<T, COL> proxy_;
+  AccessProxy<T, ROW, COL> proxy_;
 
 public:
   SimpleMatrix() : data_(ROW * COL){};
   explicit SimpleMatrix(std::initializer_list<T> init_list) : data_(init_list)
   {
-    assert(init_list.size() == ROW * COL);
+    if (init_list.size() != ROW * COL)
+    {
+      throw std::invalid_argument("invalid elements count");
+    }
   }
 
   SimpleMatrix(const SimpleMatrix &m) = default;
@@ -47,7 +53,7 @@ public:
   SimpleMatrix &operator=(SimpleMatrix &&m) noexcept = default;
 
   // TODO: didn't  provide operator== on gcc 11.1
-  auto operator<=>(const SimpleMatrix &rhs) const 
+  auto operator<=>(const SimpleMatrix &rhs) const
   {
     return data_ <=> rhs.data_;
   }
@@ -62,8 +68,13 @@ public:
     return data_.at(r * COL + c);
   }
 
-  AccessProxy<T, COL> operator[](size_t const m)
+  AccessProxy<T, ROW, COL> operator[](size_t const m)
   {
+    if (m >= ROW)
+    {
+      throw std::out_of_range("m >= ROW");
+    }
+
     auto it = data_.begin();
     std::advance(it, m * COL);
     proxy_.set(it);

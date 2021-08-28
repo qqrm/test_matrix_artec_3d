@@ -1,102 +1,136 @@
-﻿#include <cassert>
-#include <sstream>
-#include <tuple>
-#include <utility>
-#include <vector>
-
+#include "include/acutest.h"
 #include "matrix/matrix.hpp"
 #include "matrix/matrix_ops.hpp"
 
-template class SimpleMatrix<int, 3, 5>;
+#include <exception>
+#include <sstream>
 
+template class SimpleMatrix<int, 3, 5>;
 using Matrix3x5 = SimpleMatrix<int, 3, 5>;
 
-void init_matrix_test()
+void init()
 {
-  Matrix3x5 empty;
+    Matrix3x5 empty;
 
-  {
-    Matrix3x5 v{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
+    {
+        Matrix3x5 v{
+            0, 1, 2, 3, 4,
+            5, 6, 7, 8, 9,
+            8, 7, 6, 5, 4};
 
-    Matrix3x5 a{v};
-    assert(a == v);
+        Matrix3x5 a{v};
+        assert(a == v);
 
-    Matrix3x5 b = Matrix3x5{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
+        Matrix3x5 b = Matrix3x5{
+            0, 1, 2, 3, 4,
+            5, 6, 7, 8, 9,
+            8, 7, 6, 5, 4};
 
-    assert(v == b);
-  }
+        assert(v == b);
+    }
+}
 
-  {
-    // Matrix bad_init({0, 1}); // error
-  }
+void bad_init()
+{
+    TEST_EXCEPTION(Matrix3x5 bad_init({0, 1}), std::invalid_argument);
 }
 
 void assign_test()
 {
-  Matrix3x5 orig{
-      0, 1, 2, 3, 4,
-      5, 6, 7, 8, 9,
-      8, 7, 6, 5, 4};
+    Matrix3x5 orig{
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9,
+        8, 7, 6, 5, 4};
 
-  auto copy = orig;
-  assert(copy == orig);
+    auto copy = orig;
+    assert(copy == orig);
 }
 
-void move_test()
+void move_test1()
 {
-  Matrix3x5 orig{
-      0, 1, 2, 3, 4,
-      5, 6, 7, 8, 9,
-      8, 7, 6, 5, 4};
+    Matrix3x5 orig{
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9,
+        8, 7, 6, 5, 4};
 
-  auto copy = orig;
-  auto moved = std::move(orig);
+    auto copy = orig;
+    auto moved = std::move(orig);
 
-  assert(moved == copy);
+    assert(moved == copy);
+}
+
+void move_test2()
+{
+    Matrix3x5 orig{
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9,
+        8, 7, 6, 5, 4};
+
+    auto moved = Matrix3x5{
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9,
+        8, 7, 6, 5, 4};
+
+    assert(moved == orig);
 }
 
 void foreach_test()
 {
-  Matrix3x5 m{
-      0, 1, 2, 3, 4,
-      5, 6, 7, 8, 9,
-      8, 7, 6, 5, 4};
+    Matrix3x5 m{
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9,
+        8, 7, 6, 5, 4};
 
-  std::stringstream ss;
-  for (auto &v : m)
-  {
-    ss << v << " ";
-  }
+    std::stringstream ss;
+    for (auto &v : m)
+    {
+        ss << v << " ";
+    }
 
-  auto str = ss.str();
+    auto str = ss.str();
 
-  assert(str == std::string("0 1 2 3 4 5 6 7 8 9 8 7 6 5 4 "));
+    assert(str == std::string("0 1 2 3 4 5 6 7 8 9 8 7 6 5 4 "));
 }
 
 void foreach_mod_test()
 {
-  Matrix3x5 m{
-      0, 1, 2, 3, 4,
-      5, 6, 7, 8, 9,
-      8, 7, 6, 5, 4};
+    Matrix3x5 m{
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9,
+        8, 7, 6, 5, 4};
 
-  for (auto &v : m)
-  {
-    v = 1;
-  }
+    for (auto &v : m)
+    {
+        v = 1;
+    }
 
-  Matrix3x5 ed{
-      1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1};
+    Matrix3x5 ed{
+        1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1};
 
-  assert(ed == m);
+    assert(ed == m);
+}
+
+void foreach_mod_test_err1()
+{
+    Matrix3x5 m{
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9,
+        8, 7, 6, 5, 4};
+
+    TEST_EXCEPTION(m[33][1] = 4, std::out_of_range);
+
+}
+
+void foreach_mod_test_err2()
+{
+    Matrix3x5 m{
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9,
+        8, 7, 6, 5, 4};
+
+    TEST_EXCEPTION(m[1][33] = 4, std::out_of_range);
 }
 
 void proxy_test()
@@ -118,7 +152,6 @@ void proxy_test()
 
 void concat_test()
 {
-
   SimpleMatrix<int, 3, 5> a{
       0, 1, 2, 3, 4,
       5, 6, 7, 8, 9,
@@ -143,7 +176,6 @@ void concat_test()
 
 void mul_test()
 {
-
   SimpleMatrix<int, 3, 5> a{
       0, 1, 2, 3, 4,
       5, 6, 7, 8, 9,
@@ -291,7 +323,8 @@ void prints()
       0, 1, 2, 3, 4,
       5, 6, 7, 8, 9};
 
-  // matrix_ops::prints(a, b);
+// TODO: override operator<<
+//   matrix_ops::prints(a, b);
 }
 
 void concat_n_test()
@@ -392,27 +425,28 @@ void compare_test()
   assert(comp3 == true);
 }
 
-int main()
-{
-  // Tests "like this" for reducing external dependencies
 
-  init_matrix_test();
-  assign_test();
-  move_test();
-  foreach_test();
-  foreach_mod_test();
-  proxy_test();
-  concat_test();
-  mul_test();
-  resize_test();
-  sum_test();
-  oper_plus_test();
-  prints();
-  concat_n_test();
-  mul_n_test();
-  sum_n_test();
+TEST_LIST = {
 
-  compare_test();
+    {"init", init},
+    {"bad init", bad_init},
+    {"assign test", assign_test},
+    {"move_test", move_test1},
+    {"move_test", move_test2},
+    {"foreach test", foreach_test},
+    {"foreach mod test", foreach_mod_test},
+    {"foreach mod test err row", foreach_mod_test_err1},
+    {"foreach mod test err col", foreach_mod_test_err2},
+    {"proxy acsess test", proxy_test},
+    {"concat test", concat_test},
+    {"mul test", mul_test},
+    {"resize test", resize_test},
+    {"sum test", sum_test},
+    {"op plus test", oper_plus_test},
+    // {"prints", prints},
+    {"concat n  test", concat_n_test},
+    {"mul n test", mul_n_test},
+    {"sum_n_test", sum_n_test},
+    {"compare test", compare_test},
 
-  return 0;
-}
+    {NULL, NULL}};
