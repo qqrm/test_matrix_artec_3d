@@ -5,9 +5,6 @@ Provides h-only lib with template matrix class, some operations with simple test
 
 operations:
 - summ
-- summ n
 - mul
-- mul n
 - concat
-- concat n
 - resize

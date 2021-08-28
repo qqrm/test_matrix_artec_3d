@@ -4,7 +4,6 @@
 
 namespace matrix
 {
-
     template <typename... SimpleMatrix>
     void prints(SimpleMatrix &...matrix)
     {
