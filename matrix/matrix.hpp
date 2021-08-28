@@ -16,35 +16,35 @@
 template <class T, size_t COL>
 class AccessProxy
 {
-  std::vector<T>::iterator _i;
+  std::vector<T>::iterator i_;
 
 public:
   AccessProxy() = default;
-  void set(std::vector<T>::iterator i) { _i = i; }
+  void set(std::vector<T>::iterator i) { i_ = i; }
   constexpr T &operator[](size_t const n)
   {
     assert(n < COL);
-    std::advance(_i, n);
-    return *_i;
+    std::advance(i_, n);
+    return *i_;
   }
 };
 template <class T, size_t ROW, size_t COL>
 class SimpleMatrix
 {
-  std::vector<T> _data;
+  std::vector<T> data_;
 
+  AccessProxy<T, COL> proxy_;
 public:
-  AccessProxy<T, COL> _proxy;
 
-  SimpleMatrix() : _data(ROW * COL){};
-  explicit SimpleMatrix(std::initializer_list<T> init_list) : _data(init_list)
+  SimpleMatrix() : data_(ROW * COL){};
+  explicit SimpleMatrix(std::initializer_list<T> init_list) : data_(init_list)
   {
     assert(init_list.size() == ROW * COL);
   }
 
   SimpleMatrix(const SimpleMatrix &m)
   {
-    _data = m._data;
+    data_ = m.data_;
   }
 
   SimpleMatrix &operator=(SimpleMatrix const &r) = default;
@@ -53,25 +53,25 @@ public:
 
   constexpr T const &at(size_t const r, size_t const c) const
   {
-    return _data.at(r * COL + c);
+    return data_.at(r * COL + c);
   }
 
   bool operator==(const SimpleMatrix &rhs) const
   {
-    return _data == rhs._data;
+    return data_ == rhs.data_;
   }
 
   bool operator!=(const SimpleMatrix &rhs) const
   {
-    return _data != rhs._data;
+    return data_ != rhs.data_;
   }
 
   AccessProxy<T, COL> operator[](size_t const m)
   {
-    auto it = _data.begin();
+    auto it = data_.begin();
     std::advance(it, m * COL);
-    _proxy.set(it);
-    return _proxy;
+    proxy_.set(it);
+    return proxy_;
   }
 
   friend SimpleMatrix operator+(SimpleMatrix lhs, const SimpleMatrix &rhs)
@@ -80,7 +80,7 @@ public:
     {
       for (size_t j{0}; j < COL; j++)
       {
-        lhs._data[i * COL + j] = lhs._data[i * COL + j] + rhs._data[i * COL + j];
+        lhs.data_[i * COL + j] = lhs.data_[i * COL + j] + rhs.data_[i * COL + j];
       }
     }
     return lhs;
@@ -88,16 +88,16 @@ public:
 
   friend SimpleMatrix operator*(SimpleMatrix lhs, const T n)
   {
-    std::transform(lhs._data.begin(), lhs._data.end(), lhs._data.begin(), [n](auto el) -> T
+    std::transform(lhs.data_.begin(), lhs.data_.end(), lhs.data_.begin(), [n](auto el) -> T
                    { return el * n; });
     return lhs;
   }
 
-  auto cbegin() const { return _data.cbegin(); }
-  auto cend() const { return _data.cend(); }
+  auto cbegin() const { return data_.cbegin(); }
+  auto cend() const { return data_.cend(); }
 
-  auto begin() { return _data.begin(); }
-  auto end() { return _data.end(); }
+  auto begin() { return data_.begin(); }
+  auto end() { return data_.end(); }
 
   void print() const
   {
@@ -105,7 +105,7 @@ public:
     {
       for (size_t j{0}; j < COL; j++)
       {
-        std::cout << _data[i * COL + j] << " ";
+        std::cout << data_[i * COL + j] << " ";
       }
       std::cout << "\n";
     }
@@ -183,13 +183,13 @@ namespace matrix_ops
   }
 
   template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
-  auto sum(SimpleMatrix<T, ROW1, COL1> _a, SimpleMatrix<T, ROW2, COL2> _b)
+  auto sum(SimpleMatrix<T, ROW1, COL1> a_, SimpleMatrix<T, ROW2, COL2> b_)
   {
     size_t const ROW3 = std::max(ROW1, ROW2);
     size_t const COL3 = std::max(COL1, COL2);
 
-    auto a = resize<ROW3, COL3>(_a);
-    auto b = resize<ROW3, COL3>(_b);
+    auto a = resize<ROW3, COL3>(a_);
+    auto b = resize<ROW3, COL3>(b_);
 
     SimpleMatrix<T, ROW3, COL3> result;
 
