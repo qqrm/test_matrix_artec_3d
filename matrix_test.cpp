@@ -308,10 +308,7 @@ void concat_mul_test()
   SimpleMatrix<int, 1, 2> c{
       7, 7};
 
-  auto d = matrix_ops::concat_mul(a, b, c);
-
-  matrix_ops::prints(a, b, c);
-  d.print();
+  auto d = matrix_ops::concat(a, b, c);
 
   SimpleMatrix<int, 3, 4> res{
       0, 2, 7, 7,

@@ -40,10 +40,16 @@ namespace matrix_ops
     };
 
     template <typename SimpleMatrix1, typename... SimpleMatrix2>
-    auto concat_mul(const SimpleMatrix1 &m1, const SimpleMatrix2 & ...m2)
+    auto concat(const SimpleMatrix1 &m1, const SimpleMatrix2 &...m2)
     {
         return concat(m1, concat(m2...));
     }
+
+    // template <typename SimpleMatrix1, typename... SimpleMatrix2>
+    // auto concat(const SimpleMatrix1 &m1, const SimpleMatrix2 &...m2)
+    // {
+    //     return concat(m1, concat(m2...));
+    // }
 
     template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
     auto mul(const SimpleMatrix<T, ROW1, COL1> &a, const SimpleMatrix<T, ROW2, COL2> &b)
