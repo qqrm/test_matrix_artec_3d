@@ -5,6 +5,8 @@
 #include <vector>
 
 #include "matrix/matrix.hpp"
+#include "matrix/matrix_ops.hpp"
+
 
 template class SimpleMatrix<int, 3, 5>;
 
