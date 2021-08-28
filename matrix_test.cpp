@@ -7,7 +7,6 @@
 #include "matrix/matrix.hpp"
 #include "matrix/matrix_ops.hpp"
 
-
 template class SimpleMatrix<int, 3, 5>;
 
 using Matrix3x5 = SimpleMatrix<int, 3, 5>;
@@ -21,8 +20,6 @@ void init_matrix_test()
         0, 1, 2, 3, 4,
         5, 6, 7, 8, 9,
         8, 7, 6, 5, 4};
-
-    v.print();
 
     Matrix3x5 a{v};
     assert(a == v);
@@ -283,8 +280,51 @@ void oper_plus_test()
   }
 }
 
+void prints()
+{
+  SimpleMatrix<int, 3, 3> a{
+      0, 1, 2,
+      5, 6, 7,
+      8, 7, 6};
+
+  SimpleMatrix<int, 2, 5> b{
+      0, 1, 2, 3, 4,
+      5, 6, 7, 8, 9};
+
+  // matrix_ops::prints(a, b);
+}
+
+void concat_mul_test()
+{
+  SimpleMatrix<int, 2, 1> a{
+      0,
+      5};
+
+  SimpleMatrix<int, 3, 1> b{
+      2,
+      4,
+      6};
+
+  SimpleMatrix<int, 1, 2> c{
+      7, 7};
+
+  auto d = matrix_ops::concat_mul(a, b, c);
+
+  matrix_ops::prints(a, b, c);
+  d.print();
+
+  SimpleMatrix<int, 3, 4> res{
+      0, 2, 7, 7,
+      5, 4, 0, 0,
+      0, 6, 0, 0};
+
+  assert(d == res);
+}
+
 int main()
 {
+  // Tests "like this" for reducing external dependencies
+
   init_matrix_test();
 
   assign_test();
@@ -304,6 +344,10 @@ int main()
   sum_test();
 
   oper_plus_test();
+
+  prints();
+
+  concat_mul_test();
 
   return 0;
 }

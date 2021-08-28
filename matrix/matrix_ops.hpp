@@ -4,6 +4,14 @@
 
 namespace matrix_ops
 {
+
+    template <typename... SimpleMatrix>
+    void prints(SimpleMatrix &...matrix)
+    {
+        (..., matrix.print());
+        std::cout << '\n';
+    }
+
     template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
     auto concat(const SimpleMatrix<T, ROW1, COL1> &a, const SimpleMatrix<T, ROW2, COL2> &b)
     {
@@ -30,6 +38,52 @@ namespace matrix_ops
 
         return result;
     };
+
+    // template <typename... SimpleMatrix>
+    // void concat_mul(SimpleMatrix &...matrix)
+    // {
+    //     auto result = concat(matrix, (...));
+    // }
+
+    // template <typename... SimpleMatrix>
+    // auto concat_mul(SimpleMatrix &&...matrix)
+    // {
+    //     //    return (args + ... + 1 * 2); // Error: operator with precedence below cast
+    //     // bool all(Args... args) { return (... && args); }
+    //     return concat(matrix, ...);
+    //     // return (args + ... + (1 * 2)); // OK
+    // }
+
+    // template <typename SimpleMatrix, typename... Args>
+    // SimpleMatrix concat_mul(SimpleMatrix matrix, Args... args)
+    // {
+    //     auto concat_one = [matrix](SimpleMatrix &b)
+    //     {
+    //         return concat(matrix, b);
+    //     };
+
+    //     return concat_one(...);
+    // }
+
+
+    // template <typename T1, typename T2>
+    // auto adder(const T1 &t1, const T2 &t2)
+    // {
+    //     return t1 + t2;
+    // }
+
+    // template <typename T1, typename... T2>
+    // auto adder(const T1 &t1, const T2 &...t2)
+    // {
+    //     return t1 + adder(t2...);
+    // }
+
+    template <typename SimpleMatrix1, typename... SimpleMatrix2>
+    auto concat_mul(const SimpleMatrix1 &m1, const SimpleMatrix2 & ...m2)
+    {
+        // return t1 + adder(t2...);
+        return concat(m1, concat(m2...));
+    }
 
     template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
     auto mul(const SimpleMatrix<T, ROW1, COL1> &a, const SimpleMatrix<T, ROW2, COL2> &b)
