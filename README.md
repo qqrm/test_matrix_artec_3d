@@ -8,3 +8,6 @@ operations:
 - mul
 - concat
 - resize
+
+tests:  
+run build/matrix_test after build
