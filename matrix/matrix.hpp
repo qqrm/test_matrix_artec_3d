@@ -2,16 +2,15 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstdlib>
+// #include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <iterator>
 #include <numeric>
-#include <optional>
 #include <utility>
-#include <variant>
 #include <vector>
 #include <initializer_list>
+#include <compare>
 
 template <class T, size_t COL>
 class AccessProxy
@@ -34,36 +33,33 @@ class SimpleMatrix
   std::vector<T> data_;
 
   AccessProxy<T, COL> proxy_;
-public:
 
+public:
   SimpleMatrix() : data_(ROW * COL){};
   explicit SimpleMatrix(std::initializer_list<T> init_list) : data_(init_list)
   {
     assert(init_list.size() == ROW * COL);
   }
 
-  SimpleMatrix(const SimpleMatrix &m)
-  {
-    data_ = m.data_;
-  }
-
+  SimpleMatrix(const SimpleMatrix &m) = default;
   SimpleMatrix &operator=(SimpleMatrix const &r) = default;
   SimpleMatrix(SimpleMatrix &&m) noexcept = default;
   SimpleMatrix &operator=(SimpleMatrix &&m) noexcept = default;
 
-  constexpr T const &at(size_t const r, size_t const c) const
+  // TODO: didn't  provide operator== on gcc 11.1
+  auto operator<=>(const SimpleMatrix &rhs) const 
   {
-    return data_.at(r * COL + c);
+    return data_ <=> rhs.data_;
   }
 
-  bool operator==(const SimpleMatrix &rhs) const
+  auto operator==(const SimpleMatrix &rhs) const
   {
     return data_ == rhs.data_;
   }
 
-  bool operator!=(const SimpleMatrix &rhs) const
+  constexpr T const &at(size_t const r, size_t const c) const
   {
-    return data_ != rhs.data_;
+    return data_.at(r * COL + c);
   }
 
   AccessProxy<T, COL> operator[](size_t const m)

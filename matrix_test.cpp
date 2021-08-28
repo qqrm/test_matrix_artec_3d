@@ -1,4 +1,4 @@
-﻿#include <assert.h>
+﻿#include <cassert>
 #include <sstream>
 #include <tuple>
 #include <utility>
@@ -368,15 +368,37 @@ void sum_n_test()
   assert(d == res);
 }
 
+void compare_test()
+{
+  SimpleMatrix<int, 1, 3> a{
+      2, 4, 6};
+
+  SimpleMatrix<int, 1, 3> b{
+      2, 4, 6};
+
+  auto comp1 = a == b;
+  assert(comp1 == true);
+
+  SimpleMatrix<int, 1, 3> c{
+      2, 4, 7};
+
+  auto comp2 = a < c;
+  assert(comp2 == true);
+
+  SimpleMatrix<int, 1, 3> d{
+      2, 3, 7};
+
+  auto comp3 = a > d;
+  assert(comp3 == true);
+}
+
 int main()
 {
   // Tests "like this" for reducing external dependencies
 
   init_matrix_test();
-
   assign_test();
   move_test();
-
   foreach_test();
   foreach_mod_test();
   proxy_test();
@@ -389,6 +411,8 @@ int main()
   concat_n_test();
   mul_n_test();
   sum_n_test();
+
+  compare_test();
 
   return 0;
 }
