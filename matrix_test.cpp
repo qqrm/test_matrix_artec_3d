@@ -294,7 +294,7 @@ void prints()
   // matrix_ops::prints(a, b);
 }
 
-void concat_mul_test()
+void concat_n_test()
 {
   SimpleMatrix<int, 2, 1> a{
       0,
@@ -314,6 +314,32 @@ void concat_mul_test()
       0, 2, 7, 7,
       5, 4, 0, 0,
       0, 6, 0, 0};
+
+  assert(d == res);
+}
+
+void mul_n_test()
+{
+  SimpleMatrix<int, 2, 4> a{
+      0, 3, 1, 3,
+      5, 4, 0, 7};
+
+  SimpleMatrix<int, 4, 3> b{
+      2, 4, 6,
+      4, 3, 6,
+      6, 3, 1,
+      2, 8, 9};
+
+  SimpleMatrix<int, 3, 2> c{
+      7, 1,
+      5, 3,
+      4, 7};
+  
+  auto d = matrix_ops::mul(a, b, c);
+
+  SimpleMatrix<int, 2, 2> res{
+      532, 454,
+      1188, 1123};
 
   assert(d == res);
 }
@@ -344,7 +370,9 @@ int main()
 
   prints();
 
-  concat_mul_test();
+  concat_n_test();
+
+  mul_n_test();
 
   return 0;
 }

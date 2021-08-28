@@ -45,12 +45,6 @@ namespace matrix_ops
         return concat(m1, concat(m2...));
     }
 
-    // template <typename SimpleMatrix1, typename... SimpleMatrix2>
-    // auto concat(const SimpleMatrix1 &m1, const SimpleMatrix2 &...m2)
-    // {
-    //     return concat(m1, concat(m2...));
-    // }
-
     template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
     auto mul(const SimpleMatrix<T, ROW1, COL1> &a, const SimpleMatrix<T, ROW2, COL2> &b)
     {
@@ -74,6 +68,12 @@ namespace matrix_ops
 
         return result;
     };
+
+    template <typename SimpleMatrix1, typename... SimpleMatrix2>
+    auto mul(const SimpleMatrix1 &m1, const SimpleMatrix2 &...m2)
+    {
+        return mul(m1, mul(m2...));
+    }
 
     template <size_t NEW_ROW, size_t NEW_COL, class T, size_t ROW, size_t COL>
     auto resize(const SimpleMatrix<T, ROW, COL> &m)
