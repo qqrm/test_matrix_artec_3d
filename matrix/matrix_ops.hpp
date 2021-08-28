@@ -112,4 +112,10 @@ namespace matrix_ops
 
         return result;
     };
+
+    template <typename SimpleMatrix1, typename... SimpleMatrix2>
+    auto sum(const SimpleMatrix1 &m1, const SimpleMatrix2 &...m2)
+    {
+        return sum(m1, sum(m2...));
+    }
 }

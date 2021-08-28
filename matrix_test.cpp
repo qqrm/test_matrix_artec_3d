@@ -334,12 +334,36 @@ void mul_n_test()
       7, 1,
       5, 3,
       4, 7};
-  
+
   auto d = matrix_ops::mul(a, b, c);
 
   SimpleMatrix<int, 2, 2> res{
       532, 454,
       1188, 1123};
+
+  assert(d == res);
+}
+
+void sum_n_test()
+{
+  SimpleMatrix<int, 2, 3> a{
+      0, 3, 1,
+      5, 4, 0};
+
+  SimpleMatrix<int, 1, 3> b{
+      2, 4, 6};
+
+  SimpleMatrix<int, 3, 1> c{
+      7,
+      5,
+      4};
+
+  auto d = matrix_ops::sum(a, b, c);
+
+  SimpleMatrix<int, 3, 3> res{
+      9, 7, 7,
+      10, 4, 0,
+      4, 0, 0};
 
   assert(d == res);
 }
@@ -355,24 +379,16 @@ int main()
 
   foreach_test();
   foreach_mod_test();
-
   proxy_test();
-
   concat_test();
-
   mul_test();
-
   resize_test();
-
   sum_test();
-
   oper_plus_test();
-
   prints();
-
   concat_n_test();
-
   mul_n_test();
+  sum_n_test();
 
   return 0;
 }
