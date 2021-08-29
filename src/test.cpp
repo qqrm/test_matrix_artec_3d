@@ -422,7 +422,7 @@ void cout_test()
 
     ss << m;
 
-    auto res = std::string("\nMatrix 3x3:\n9 7 7 \n10 4 0 \n4 0 0 \n");
+    auto res = std::string("\nMatrix 3x3:\n  9   7   7 \n 10   4   0 \n  4   0   0 \n");
 
     assert(res == ss.str());
 }

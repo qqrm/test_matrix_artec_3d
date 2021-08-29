@@ -8,6 +8,7 @@
 #include <numeric>
 #include <utility>
 #include <vector>
+#include <iomanip>
 #include <initializer_list>
 #include <compare>
 #include <exception>
@@ -36,7 +37,6 @@ namespace matrix
   class SimpleMatrix
   {
     std::vector<T> data_;
-
     AccessProxy<T, COL> proxy_;
 
   public:
@@ -45,7 +45,7 @@ namespace matrix
     {
       if (init_list.size() != ROW * COL)
       {
-        throw std::invalid_argument("invalid elements count");
+        throw std::invalid_argument("invalid init list elements count");
       }
     }
 
@@ -70,15 +70,15 @@ namespace matrix
       return data_.at(r * COL + c);
     }
 
-    AccessProxy<T, COL>& operator[](size_t const m)
+    constexpr AccessProxy<T, COL> &operator[](size_t const r)
     {
-      if (m >= ROW)
+      if (r >= ROW)
       {
         throw std::out_of_range("m >= ROW");
       }
 
       auto it = data_.begin();
-      std::advance(it, m * COL);
+      std::advance(it, r * COL);
       proxy_.set(it);
       return proxy_;
     }
@@ -110,16 +110,16 @@ namespace matrix
 
     friend std::ostream &operator<<(std::ostream &os, const SimpleMatrix &m)
     {
-      os << "\nMatrix " << ROW << "x" << COL << ":\n";
-
+      os << "\nMatrix " << ROW << "x" << COL << ":\n"; // for large matrix
       for (size_t i{0}; i < ROW; i++)
       {
         for (size_t j{0}; j < COL; j++)
         {
-          os << m.data_[i * COL + j] << " ";
+          os << std::setw(3) << m.data_[i * COL + j] << " ";
         }
         os << "\n";
       }
+
 
       return os;
     }
