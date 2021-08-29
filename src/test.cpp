@@ -1,13 +1,11 @@
 #include "include/acutest.h"
 #include "matrix/matrix.hpp"
-#include "matrix/matrix_ops.hpp"
 
 #include <exception>
 #include <sstream>
 
 using namespace matrix;
 
-template class SimpleMatrix<int, 3, 5>;
 using Matrix3x5 = SimpleMatrix<int, 3, 5>;
 
 void init()

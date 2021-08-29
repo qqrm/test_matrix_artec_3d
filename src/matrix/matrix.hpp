@@ -1,153 +1,103 @@
 #pragma once
 
-#include <algorithm>
-#include <cassert>
-#include <functional>
-#include <iostream>
-#include <iterator>
-#include <numeric>
-#include <utility>
-#include <vector>
-#include <iomanip>
-#include <initializer_list>
-#include <compare>
-#include <exception>
+#include "matrix_base.hpp"
 
 namespace matrix
 {
-  template <class T, size_t COL>
-  class AccessProxy
-  {
-    std::vector<T>::iterator i_;
-
-  public:
-    AccessProxy() = default;
-    void set(std::vector<T>::iterator i) { i_ = i; }
-    constexpr T &operator[](size_t const n)
+    template <typename... SimpleMatrix>
+    void prints(SimpleMatrix &...matrix)
     {
-      if (n >= COL)
-      {
-        throw std::out_of_range("n >= COL");
-      }
-      std::advance(i_, n);
-      return *i_;
-    }
-  };
-  template <class T, size_t ROW, size_t COL>
-  class SimpleMatrix
-  {
-    std::vector<T> data_;
-    AccessProxy<T, COL> proxy_;
-
-  public:
-    SimpleMatrix() : data_(ROW * COL){};
-    explicit SimpleMatrix(std::initializer_list<T> init_list) : data_(init_list)
-    {
-      if (init_list.size() != ROW * COL)
-      {
-        throw std::invalid_argument("invalid init list elements count");
-      }
+        (..., matrix.print());
+        std::cout << '\n';
     }
 
-    SimpleMatrix(const SimpleMatrix &m) = default;
-    SimpleMatrix &operator=(SimpleMatrix const &r) = default;
-    SimpleMatrix(SimpleMatrix &&m) noexcept = default;
-    SimpleMatrix &operator=(SimpleMatrix &&m) noexcept = default;
-
-    // TODO: didn't  provide operator== on gcc 11.1
-    auto operator<=>(const SimpleMatrix &rhs) const
+    template <size_t NEW_ROW, size_t NEW_COL, class T, size_t ROW, size_t COL>
+    auto resize(const SimpleMatrix<T, ROW, COL> &m)
     {
-      return data_ <=> rhs.data_;
-    }
+        SimpleMatrix<T, NEW_ROW, NEW_COL> result;
 
-    auto operator==(const SimpleMatrix &rhs) const
-    {
-      return data_ == rhs.data_;
-    }
-
-    constexpr T const &at(size_t const r, size_t const c) const
-    {
-      return data_.at(r * COL + c);
-    }
-
-    constexpr AccessProxy<T, COL> &operator[](size_t const r)
-    {
-      if (r >= ROW)
-      {
-        throw std::out_of_range("m >= ROW");
-      }
-
-      auto it = data_.begin();
-      std::advance(it, r * COL);
-      proxy_.set(it);
-      return proxy_;
-    }
-
-    friend SimpleMatrix operator+(SimpleMatrix lhs, const SimpleMatrix &rhs)
-    {
-      for (size_t i{0}; i < ROW; i++)
-      {
-        for (size_t j{0}; j < COL; j++)
+        for (size_t i{0}; i < ROW; i++)
         {
-          lhs.data_[i * COL + j] = lhs.data_[i * COL + j] + rhs.data_[i * COL + j];
+            for (size_t j{0}; j < COL; j++)
+            {
+                result[i][j] = m.at(i, j);
+            }
         }
-      }
-      return lhs;
+
+        return result;
     }
 
-    friend SimpleMatrix operator*(SimpleMatrix lhs, const T n)
+    template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
+    auto operator*(const SimpleMatrix<T, ROW1, COL1> &a, const SimpleMatrix<T, ROW2, COL2> &b)
     {
-      std::transform(lhs.data_.begin(), lhs.data_.end(), lhs.data_.begin(), [n](auto el) -> T
-                     { return el * n; });
-      return lhs;
-    }
+        static_assert(ROW2 == COL1);
 
-    auto cbegin() const { return data_.cbegin(); }
-    auto cend() const { return data_.cend(); }
+        size_t const ROW3 = ROW1;
+        size_t const COL3 = COL2;
 
-    auto begin() { return data_.begin(); }
-    auto end() { return data_.end(); }
+        SimpleMatrix<T, ROW3, COL3> result;
 
-    friend std::ostream &operator<<(std::ostream &os, const SimpleMatrix &m)
-    {
-      os << "\nMatrix " << ROW << "x" << COL << ":\n"; // for large matrix
-      for (size_t i{0}; i < ROW; i++)
-      {
-        for (size_t j{0}; j < COL; j++)
+        for (size_t i{0}; i < ROW1; ++i)
         {
-          os << std::setw(3) << m.data_[i * COL + j] << " ";
+            for (size_t j{0}; j < COL2; ++j)
+            {
+                for (size_t k{0}; k < COL1; ++k)
+                {
+                    result[i][j] += a.at(i, k) * b.at(k, j);
+                }
+            }
         }
-        os << "\n";
-      }
 
-
-      return os;
+        return result;
     }
 
-    friend std::istream &operator>>(std::istream &is, SimpleMatrix &m)
+    template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
+    auto operator+(const SimpleMatrix<T, ROW1, COL1> &a_, const SimpleMatrix<T, ROW2, COL2> &b_)
     {
-      for (size_t i{0}; i < ROW; i++)
-      {
-        for (size_t j{0}; j < COL; j++)
+        size_t const ROW3 = std::max(ROW1, ROW2);
+        size_t const COL3 = std::max(COL1, COL2);
+
+        auto a = resize<ROW3, COL3>(a_);
+        auto b = resize<ROW3, COL3>(b_);
+
+        SimpleMatrix<T, ROW3, COL3> result;
+
+        for (size_t i{0}; i < ROW3; i++)
         {
-          is >> m.data_[i * COL + j];
+            for (size_t j{0}; j < COL3; j++)
+            {
+                result[i][j] = a[i][j] + b[i][j];
+            }
         }
-      }
 
-      return is;
-    }
+        return result;
+    };
 
-    void print() const
+    template <class T, size_t ROW1, size_t COL1, size_t ROW2, size_t COL2>
+    auto operator|(const SimpleMatrix<T, ROW1, COL1> &a, const SimpleMatrix<T, ROW2, COL2> &b)
     {
-      for (size_t i{0}; i < ROW; i++)
-      {
-        for (size_t j{0}; j < COL; j++)
+        size_t const ROW3 = std::max(ROW1, ROW2);
+        size_t const COL3 = COL1 + COL2;
+
+        SimpleMatrix<T, ROW3, COL3> result;
+
+        for (size_t i{0}; i < ROW1; i++)
         {
-          std::cout << data_[i * COL + j] << " ";
+            for (size_t j{0}; j < COL1; j++)
+            {
+                result[i][j] = a.at(i, j);
+            }
         }
-        std::cout << "\n";
-      }
-      std::cout << "\n";
-    }
-  }; // SimpleMatrix
+
+        for (size_t i{0}; i < ROW2; i++)
+        {
+            for (size_t j{0}; j < COL2; j++)
+            {
+                result[i][COL1 + j] = b.at(i, j);
+            }
+        }
+
+        return result;
+    };
+
 } // matrix
