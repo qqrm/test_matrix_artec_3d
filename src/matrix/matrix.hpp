@@ -70,7 +70,7 @@ namespace matrix
       return data_.at(r * COL + c);
     }
 
-    AccessProxy<T, COL> operator[](size_t const m)
+    AccessProxy<T, COL>& operator[](size_t const m)
     {
       if (m >= ROW)
       {
