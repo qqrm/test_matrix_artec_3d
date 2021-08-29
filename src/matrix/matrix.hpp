@@ -108,6 +108,23 @@ namespace matrix
     auto begin() { return data_.begin(); }
     auto end() { return data_.end(); }
 
+    friend std::ostream &operator<<(std::ostream &os, const SimpleMatrix &m)
+    {
+      os << "\nMatrix " << ROW << "x" << COL << ":\n";
+
+      for (size_t i{0}; i < ROW; i++)
+      {
+        for (size_t j{0}; j < COL; j++)
+        {
+          os << m.data_[i * COL + j] << " ";
+        }
+        os << "\n";
+      }
+      os << "\n";
+
+      return os;
+    }
+
     void print() const
     {
       for (size_t i{0}; i < ROW; i++)
@@ -120,5 +137,5 @@ namespace matrix
       }
       std::cout << "\n";
     }
-  };
-}
+  }; // SimpleMatrix
+} // matrix

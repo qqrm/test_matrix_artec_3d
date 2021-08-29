@@ -100,4 +100,4 @@ namespace matrix
         return result;
     };
 
-}
+} // matrix

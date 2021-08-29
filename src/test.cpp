@@ -313,21 +313,6 @@ void oper_plus_test()
     }
 }
 
-void prints()
-{
-    SimpleMatrix<int, 3, 3> a{
-        0, 1, 2,
-        5, 6, 7,
-        8, 7, 6};
-
-    SimpleMatrix<int, 2, 5> b{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9};
-
-    // TODO: override operator<<
-    //   matrix_ops::prints(a, b);
-}
-
 void concat_n_test()
 {
     SimpleMatrix<int, 2, 1> a{
@@ -426,6 +411,22 @@ void compare_test()
     assert(comp3 == true);
 }
 
+void cout_test()
+{
+    SimpleMatrix<int, 3, 3> m{
+        9, 7, 7,
+        10, 4, 0,
+        4, 0, 0};
+
+    std::stringstream ss;
+
+    ss << m;
+
+    auto res = std::string("\nMatrix 3x3:\n9 7 7 \n10 4 0 \n4 0 0 \n\n");
+
+    assert(res == ss.str());
+}
+
 TEST_LIST = {
 
     {"init", init},
@@ -443,10 +444,10 @@ TEST_LIST = {
     {"resize test", resize_test},
     {"sum test", sum_test},
     {"op plus test", oper_plus_test},
-    // {"prints", prints},
     {"concat n  test", concat_n_test},
     {"mul n test", mul_n_test},
     {"sum_n_test", sum_n_test},
     {"compare test", compare_test},
+    {"cout test", cout_test},
 
     {NULL, NULL}};
