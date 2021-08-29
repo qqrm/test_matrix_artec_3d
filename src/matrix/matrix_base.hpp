@@ -86,20 +86,19 @@ namespace matrix
 
     friend SimpleMatrix operator+(SimpleMatrix lhs, const SimpleMatrix &rhs)
     {
-      for (size_t i{0}; i < ROW; i++)
+      for (size_t i{0}; i < ROW * COL; i++)
       {
-        for (size_t j{0}; j < COL; j++)
-        {
-          lhs.data_[i * COL + j] = lhs.data_[i * COL + j] + rhs.data_[i * COL + j];
-        }
+        lhs.data_[i] = lhs.data_[i] + rhs.data_[i];
       }
+
       return lhs;
     }
 
     friend SimpleMatrix operator*(SimpleMatrix lhs, const T n)
     {
-      std::transform(lhs.data_.begin(), lhs.data_.end(), lhs.data_.begin(), [n](auto el) -> T
-                     { return el * n; });
+      std::ranges::transform(lhs.data_.begin(), lhs.data_.end(), lhs.data_.begin(),
+                             [&n](auto &el)
+                             { return el * n; });
       return lhs;
     }
 
@@ -132,19 +131,6 @@ namespace matrix
       }
 
       return is;
-    }
-
-    void print() const
-    {
-      for (size_t i{0}; i < ROW; i++)
-      {
-        for (size_t j{0}; j < COL; j++)
-        {
-          std::cout << data_[i * COL + j] << " ";
-        }
-        std::cout << "\n";
-      }
-      std::cout << "\n";
     }
   }; // SimpleMatrix
 } // matrix

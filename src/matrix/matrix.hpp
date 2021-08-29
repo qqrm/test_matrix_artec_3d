@@ -7,8 +7,7 @@ namespace matrix
     template <typename... SimpleMatrix>
     void prints(SimpleMatrix &...matrix)
     {
-        (..., matrix.print());
-        std::cout << '\n';
+        (std::cout << ... << matrix);
     }
 
     template <size_t NEW_ROW, size_t NEW_COL, class T, size_t ROW, size_t COL>
