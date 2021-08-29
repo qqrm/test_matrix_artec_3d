@@ -110,7 +110,6 @@ namespace matrix
 
     friend std::ostream &operator<<(std::ostream &os, const SimpleMatrix &m)
     {
-      os << "\nMatrix " << ROW << "x" << COL << ":\n"; // for large matrix
       for (size_t i{0}; i < ROW; i++)
       {
         for (size_t j{0}; j < COL; j++)
@@ -131,6 +130,11 @@ namespace matrix
       }
 
       return is;
+    }
+
+    void print()
+    {
+      std::cout << "\nMatrix " << ROW << "x" << COL << ":\n" << *this;
     }
   }; // SimpleMatrix
 } // matrix
