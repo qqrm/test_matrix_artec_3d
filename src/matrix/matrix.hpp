@@ -120,9 +120,21 @@ namespace matrix
         }
         os << "\n";
       }
-      os << "\n";
 
       return os;
+    }
+
+    friend std::istream &operator>>(std::istream &is, SimpleMatrix &m)
+    {
+      for (size_t i{0}; i < ROW; i++)
+      {
+        for (size_t j{0}; j < COL; j++)
+        {
+          is >> m.data_[i * COL + j];
+        }
+      }
+
+      return is;
     }
 
     void print() const

@@ -422,9 +422,27 @@ void cout_test()
 
     ss << m;
 
-    auto res = std::string("\nMatrix 3x3:\n9 7 7 \n10 4 0 \n4 0 0 \n\n");
+    auto res = std::string("\nMatrix 3x3:\n9 7 7 \n10 4 0 \n4 0 0 \n");
 
     assert(res == ss.str());
+}
+
+void cin_test()
+{
+    SimpleMatrix<int, 3, 3> m;
+
+    std::stringstream ss;
+
+    ss << "1 2 3 4 5 6 7 8 9";
+
+    ss >> m;
+
+    SimpleMatrix<int, 3, 3> res{
+        1, 2, 3,
+        4, 5, 6,
+        7, 8, 9};
+
+    assert(res == m);
 }
 
 TEST_LIST = {
@@ -449,5 +467,7 @@ TEST_LIST = {
     {"sum_n_test", sum_n_test},
     {"compare test", compare_test},
     {"cout test", cout_test},
+    {"cin test", cin_test},
+
 
     {NULL, NULL}};
