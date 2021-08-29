@@ -14,7 +14,7 @@
 
 namespace matrix
 {
-  template <class T, size_t ROW, size_t COL>
+  template <class T, size_t COL>
   class AccessProxy
   {
     std::vector<T>::iterator i_;
@@ -37,7 +37,7 @@ namespace matrix
   {
     std::vector<T> data_;
 
-    AccessProxy<T, ROW, COL> proxy_;
+    AccessProxy<T, COL> proxy_;
 
   public:
     SimpleMatrix() : data_(ROW * COL){};
@@ -70,7 +70,7 @@ namespace matrix
       return data_.at(r * COL + c);
     }
 
-    AccessProxy<T, ROW, COL> operator[](size_t const m)
+    AccessProxy<T, COL> operator[](size_t const m)
     {
       if (m >= ROW)
       {
