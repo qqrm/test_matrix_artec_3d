@@ -444,7 +444,6 @@ void cin_test()
 }
 
 TEST_LIST = {
-
     {"init", init},
     {"bad init", bad_init},
     {"assign test", assign_test},
@@ -460,12 +459,12 @@ TEST_LIST = {
     {"resize test", resize_test},
     {"sum test", sum_test},
     {"op plus test", oper_plus_test},
-    {"concat n  test", concat_n_test},
+    {"concat n test", concat_n_test},
     {"mul n test", mul_n_test},
     {"sum_n_test", sum_n_test},
     {"compare test", compare_test},
     {"cout test", cout_test},
     {"cin test", cin_test},
 
-
-    {NULL, NULL}};
+    {NULL, NULL}
+};
