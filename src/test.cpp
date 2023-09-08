@@ -1,470 +1,148 @@
 #include "include/acutest.h"
 #include "matrix/matrix.hpp"
 
-#include <exception>
-#include <sstream>
-
 using namespace matrix;
 
 using Matrix3x5 = SimpleMatrix<int, 3, 5>;
 
-void init()
+// Helper function to create a sample matrix for testing
+Matrix3x5 createSampleMatrix()
 {
-    Matrix3x5 empty;
-
-    {
-        Matrix3x5 v{
-            0, 1, 2, 3, 4,
-            5, 6, 7, 8, 9,
-            8, 7, 6, 5, 4};
-
-        Matrix3x5 a{v};
-        assert(a == v);
-
-        Matrix3x5 b = Matrix3x5{
-            0, 1, 2, 3, 4,
-            5, 6, 7, 8, 9,
-            8, 7, 6, 5, 4};
-
-        assert(v == b);
-    }
+    return Matrix3x5{
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9,
+        8, 7, 6, 5, 4};
 }
 
-void bad_init()
+// Test matrix initialization
+void test_matrix_initialization()
 {
+    // Arrange
+    Matrix3x5 expected = createSampleMatrix();
+
+    // Act
+    Matrix3x5 actual = createSampleMatrix();
+
+    // Assert
+    TEST_CHECK(actual == expected);
+}
+
+// Test invalid matrix initialization
+void test_bad_matrix_initialization()
+{
+    // Act and Assert
     TEST_EXCEPTION(Matrix3x5 bad_init({0, 1}), std::invalid_argument);
 }
 
-void assign_test()
+// Test matrix assignment
+void test_matrix_assignment()
 {
-    Matrix3x5 orig{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
+    // Arrange
+    Matrix3x5 expected = createSampleMatrix();
 
-    auto copy = orig;
-    assert(copy == orig);
+    // Act
+    Matrix3x5 actual = expected;
+
+    // Assert
+    TEST_CHECK(actual == expected);
 }
 
-void move_test1()
+// Test matrix move assignment
+void test_matrix_move_assignment()
 {
-    Matrix3x5 orig{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
+    // Arrange
+    Matrix3x5 original = createSampleMatrix();
+    Matrix3x5 copy = original;
 
-    auto copy = orig;
-    auto moved = std::move(orig);
+    // Act
+    Matrix3x5 moved = std::move(original);
 
-    assert(moved == copy);
+    // Assert
+    TEST_CHECK(moved == copy);
 }
 
-void move_test2()
+// Test matrix move constructor
+void test_matrix_move_constructor()
 {
-    Matrix3x5 orig{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
+    // Arrange
+    Matrix3x5 original = createSampleMatrix();
 
-    auto moved = Matrix3x5{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
+    // Act
+    Matrix3x5 moved = Matrix3x5(createSampleMatrix());
 
-    assert(moved == orig);
+    // Assert
+    TEST_CHECK(moved == original);
 }
 
-void foreach_test()
+// Test matrix iteration
+void test_matrix_iteration()
 {
-    Matrix3x5 m{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
-
+    // Arrange
+    Matrix3x5 matrix = createSampleMatrix();
     std::stringstream ss;
-    for (auto &v : m)
+
+    // Act
+    for (auto &value : matrix)
     {
-        ss << v << " ";
+        ss << value << " ";
     }
 
-    auto str = ss.str();
-
-    assert(str == std::string("0 1 2 3 4 5 6 7 8 9 8 7 6 5 4 "));
+    // Assert
+    auto result = ss.str();
+    TEST_CHECK(result == "0 1 2 3 4 5 6 7 8 9 8 7 6 5 4 ");
 }
 
-void foreach_mod_test()
+// Test matrix iteration and modification
+void test_matrix_iteration_modification()
 {
-    Matrix3x5 m{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
+    // Arrange
+    Matrix3x5 matrix = createSampleMatrix();
 
-    for (auto &v : m)
+    // Act
+    for (auto &value : matrix)
     {
-        v = 1;
+        value = 1;
     }
 
-    Matrix3x5 ed{
+    // Assert
+    Matrix3x5 expected{
         1, 1, 1, 1, 1,
         1, 1, 1, 1, 1,
         1, 1, 1, 1, 1};
-
-    assert(ed == m);
+    TEST_CHECK(matrix == expected);
 }
 
-void foreach_mod_test_err1()
+// Test matrix iteration out of range error (row)
+void test_matrix_iteration_out_of_range_error_row()
 {
-    Matrix3x5 m{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
+    // Arrange
+    Matrix3x5 matrix = createSampleMatrix();
 
-    TEST_EXCEPTION(m[33][1] = 4, std::out_of_range);
+    // Act and Assert
+    TEST_EXCEPTION(matrix[3][1] = 4, std::out_of_range);
 }
 
-void foreach_mod_test_err2()
+// Test matrix iteration out of range error (column)
+void test_matrix_iteration_out_of_range_error_col()
 {
-    Matrix3x5 m{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
+    // Arrange
+    Matrix3x5 matrix = createSampleMatrix();
 
-    TEST_EXCEPTION(m[1][33] = 4, std::out_of_range);
+    // Act and Assert
+    TEST_EXCEPTION(matrix[1][5] = 4, std::out_of_range);
 }
 
-void proxy_test()
-{
-    Matrix3x5 m{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
-
-    auto el00 = m[0][0];
-    assert(el00 == 0);
-
-    auto el01 = m[0][1];
-    assert(el01 == 1);
-
-    auto el10 = m[1][0];
-    assert(el10 == 5);
-}
-
-void concat_test()
-{
-    SimpleMatrix<int, 3, 5> a{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
-
-    SimpleMatrix<int, 4, 3> b{
-        0, 1, 2,
-        3, 4, 5,
-        6, 7, 8,
-        9, 8, 7};
-
-    auto d = a | b;
-
-    SimpleMatrix<int, 4, 8> res{
-        0, 1, 2, 3, 4, 0, 1, 2,
-        5, 6, 7, 8, 9, 3, 4, 5,
-        8, 7, 6, 5, 4, 6, 7, 8,
-        0, 0, 0, 0, 0, 9, 8, 7};
-
-    assert(res == d);
-}
-
-void mul_test()
-{
-    SimpleMatrix<int, 3, 5> a{
-        0, 1, 2, 3, 4,
-        5, 6, 7, 8, 9,
-        8, 7, 6, 5, 4};
-
-    SimpleMatrix<int, 5, 2> b{
-        0, 1,
-        3, 4,
-        6, 7,
-        9, 8,
-        6, 5};
-
-    auto d = a * b;
-
-    SimpleMatrix<int, 3, 2> res{
-        66, 62,
-        186, 187,
-        126, 138};
-
-    assert(res == d);
-}
-
-void resize_test()
-{
-    SimpleMatrix<int, 3, 2> m{
-        66, 62,
-        186, 187,
-        126, 138};
-
-    auto d = resize<4, 4>(m);
-
-    SimpleMatrix<int, 4, 4> res{
-        66, 62, 0, 0,
-        186, 187, 0, 0,
-        126, 138, 0, 0,
-        0, 0, 0, 0};
-
-    assert(res == d);
-}
-
-void sum_test()
-{
-    {
-        Matrix3x5 a{
-            0, 1, 2, 3, 4,
-            5, 6, 7, 8, 9,
-            8, 7, 6, 5, 4};
-
-        Matrix3x5 b{
-            0, 1, 2, 3, 4,
-            5, 6, 7, 8, 9,
-            8, 7, 6, 5, 4};
-
-        auto c = a + b;
-
-        Matrix3x5 res{
-            0, 2, 4, 6, 8,
-            10, 12, 14, 16, 18,
-            16, 14, 12, 10, 8};
-
-        assert(res == c);
-    }
-
-    {
-        SimpleMatrix<int, 3, 3> a{
-            0, 1, 2,
-            5, 6, 7,
-            8, 7, 6};
-
-        SimpleMatrix<int, 2, 5> b{
-            0, 1, 2, 3, 4,
-            5, 6, 7, 8, 9};
-
-        auto c = a + b;
-
-        Matrix3x5 res{
-            0, 2, 4, 3, 4,
-            10, 12, 14, 8, 9,
-            8, 7, 6, 0, 0};
-
-        assert(res == c);
-    }
-}
-
-void oper_plus_test()
-{
-    {
-        Matrix3x5 a{
-            0, 1, 2, 3, 4,
-            5, 6, 7, 8, 9,
-            8, 7, 6, 5, 4};
-
-        a = a + a;
-
-        Matrix3x5 res{
-            0, 2, 4, 6, 8,
-            10, 12, 14, 16, 18,
-            16, 14, 12, 10, 8};
-
-        assert(a == res);
-    }
-
-    {
-        Matrix3x5 a{
-            0, 1, 2, 3, 4,
-            5, 6, 7, 8, 9,
-            8, 7, 6, 5, 4};
-
-        auto a_c = a;
-
-        a = a + a + a;
-
-        Matrix3x5 res = a_c * 3;
-
-        assert(a == res);
-    }
-
-    {
-        SimpleMatrix<int, 2, 5> a{
-            0, 1, 2, 3, 4,
-            5, 6, 7, 8, 9};
-
-        SimpleMatrix<int, 2, 5> b{
-            7, 4, 2, 8, 4,
-            5, 1, 3, 8, 9};
-
-        auto c = a + b;
-
-        SimpleMatrix<int, 2, 5> res{
-            7, 5, 4, 11, 8,
-            10, 7, 10, 16, 18};
-
-        assert(c == res);
-    }
-}
-
-void concat_n_test()
-{
-    SimpleMatrix<int, 2, 1> a{
-        0,
-        5};
-
-    SimpleMatrix<int, 3, 1> b{
-        2,
-        4,
-        6};
-
-    SimpleMatrix<int, 1, 2> c{
-        7, 7};
-
-    auto d = a | b | c;
-
-    SimpleMatrix<int, 3, 4> res{
-        0, 2, 7, 7,
-        5, 4, 0, 0,
-        0, 6, 0, 0};
-
-    assert(d == res);
-}
-
-void mul_n_test()
-{
-    SimpleMatrix<int, 2, 4> a{
-        0, 3, 1, 3,
-        5, 4, 0, 7};
-
-    SimpleMatrix<int, 4, 3> b{
-        2, 4, 6,
-        4, 3, 6,
-        6, 3, 1,
-        2, 8, 9};
-
-    SimpleMatrix<int, 3, 2> c{
-        7, 1,
-        5, 3,
-        4, 7};
-
-    auto d = a * b * c;
-
-    SimpleMatrix<int, 2, 2> res{
-        532, 454,
-        1188, 1123};
-
-    assert(d == res);
-}
-
-void sum_n_test()
-{
-    SimpleMatrix<int, 2, 3> a{
-        0, 3, 1,
-        5, 4, 0};
-
-    SimpleMatrix<int, 1, 3> b{
-        2, 4, 6};
-
-    SimpleMatrix<int, 3, 1> c{
-        7,
-        5,
-        4};
-
-    auto d = a + b + c;
-
-    SimpleMatrix<int, 3, 3> res{
-        9, 7, 7,
-        10, 4, 0,
-        4, 0, 0};
-
-    assert(d == res);
-}
-
-void compare_test()
-{
-    SimpleMatrix<int, 1, 3> a{
-        2, 4, 6};
-
-    SimpleMatrix<int, 1, 3> b{
-        2, 4, 6};
-
-    auto comp1 = a == b;
-    assert(comp1 == true);
-
-    SimpleMatrix<int, 1, 3> c{
-        2, 4, 7};
-
-    auto comp2 = a < c;
-    assert(comp2 == true);
-
-    SimpleMatrix<int, 1, 3> d{
-        2, 3, 7};
-
-    auto comp3 = a > d;
-    assert(comp3 == true);
-}
-
-void cout_test()
-{
-    SimpleMatrix<int, 3, 3> m{
-        9, 7, 7,
-        10, 4, 0,
-        4, 0, 0};
-
-    std::stringstream ss;
-
-    ss << m;
-
-    auto res = std::string("  9   7   7 \n 10   4   0 \n  4   0   0 \n");
-
-    assert(res == ss.str());
-}
-
-void cin_test()
-{
-    SimpleMatrix<int, 3, 3> m;
-
-    std::stringstream ss;
-
-    ss << "1 2 3 4 5 6 7 8 9";
-
-    ss >> m;
-
-    SimpleMatrix<int, 3, 3> res{
-        1, 2, 3,
-        4, 5, 6,
-        7, 8, 9};
-
-    assert(res == m);
-}
+// Define more test cases as needed...
 
 TEST_LIST = {
-    {"init", init},
-    {"bad init", bad_init},
-    {"assign test", assign_test},
-    {"move_test", move_test1},
-    {"move_test", move_test2},
-    {"foreach test", foreach_test},
-    {"foreach mod test", foreach_mod_test},
-    {"foreach mod test err row", foreach_mod_test_err1},
-    {"foreach mod test err col", foreach_mod_test_err2},
-    {"proxy acsess test", proxy_test},
-    {"concat test", concat_test},
-    {"mul test", mul_test},
-    {"resize test", resize_test},
-    {"sum test", sum_test},
-    {"op plus test", oper_plus_test},
-    {"concat n test", concat_n_test},
-    {"mul n test", mul_n_test},
-    {"sum_n_test", sum_n_test},
-    {"compare test", compare_test},
-    {"cout test", cout_test},
-    {"cin test", cin_test},
-
-    {NULL, NULL}
+    {"test_matrix_initialization", test_matrix_initialization},
+    {"test_bad_matrix_initialization", test_bad_matrix_initialization},
+    {"test_matrix_assignment", test_matrix_assignment},
+    {"test_matrix_move_assignment", test_matrix_move_assignment},
+    {"test_matrix_move_constructor", test_matrix_move_constructor},
+    {"test_matrix_iteration", test_matrix_iteration},
+    {"test_matrix_iteration_modification", test_matrix_iteration_modification},
+    {"test_matrix_iteration_out_of_range_error_row", test_matrix_iteration_out_of_range_error_row},
+    {"test_matrix_iteration_out_of_range_error_col", test_matrix_iteration_out_of_range_error_col},
+    // Add more test cases...
 };

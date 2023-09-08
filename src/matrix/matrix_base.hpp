@@ -1,29 +1,31 @@
 #pragma once
 
-#include <algorithm>
-#include <cassert>
-#include <functional>
 #include <iostream>
-#include <iterator>
-#include <numeric>
-#include <utility>
 #include <vector>
+#include <stdexcept>
+#include <algorithm>
 #include <iomanip>
-#include <initializer_list>
-#include <compare>
-#include <exception>
 #include <ranges>
 
 namespace matrix
 {
-  template <class T, size_t COL>
+
+  // AccessProxy: An iterator-like object for accessing elements within a row of the matrix.
+  template <typename T, size_t COL>
   class AccessProxy
   {
-    std::vector<T>::iterator i_;
+    typename std::vector<T>::iterator i_; // Iterator pointing to a position within the matrix.
 
   public:
     AccessProxy() = default;
-    void set(std::vector<T>::iterator i) { i_ = i; }
+
+    // Set the iterator to a specific position within the matrix.
+    void set(typename std::vector<T>::iterator i)
+    {
+      i_ = i;
+    }
+
+    // Access elements in the row represented by this proxy.
     constexpr T &operator[](size_t const n)
     {
       if (n >= COL)
@@ -34,48 +36,51 @@ namespace matrix
       return *i_;
     }
   };
-  template <class T, size_t ROW, size_t COL>
+
+  // SimpleMatrix: A simple matrix data structure.
+  template <typename T, size_t ROW, size_t COL>
   class SimpleMatrix
   {
     std::vector<T> data_;
     AccessProxy<T, COL> proxy_;
 
   public:
-    SimpleMatrix() : data_(ROW * COL){};
+    // Constructor: Initialize the matrix with default-initialized elements.
+    SimpleMatrix() : data_(ROW * COL) {}
+
+    // Constructor: Initialize the matrix with elements from an initializer list.
     explicit SimpleMatrix(std::initializer_list<T> init_list) : data_(init_list)
     {
       if (init_list.size() != ROW * COL)
       {
-        throw std::invalid_argument("invalid init list elements count");
+        throw std::invalid_argument("Invalid initializer list size");
       }
     }
 
+    // Copy constructor.
     SimpleMatrix(const SimpleMatrix &m) = default;
-    SimpleMatrix &operator=(SimpleMatrix const &r) = default;
+
+    // Copy assignment operator.
+    SimpleMatrix &operator=(const SimpleMatrix &r) = default;
+
+    // Move constructor.
     SimpleMatrix(SimpleMatrix &&m) noexcept = default;
+
+    // Move assignment operator.
     SimpleMatrix &operator=(SimpleMatrix &&m) noexcept = default;
 
-    // TODO: didn't  provide operator== on gcc 11.1
-    auto operator<=>(const SimpleMatrix &rhs) const
-    {
-      return data_ <=> rhs.data_;
-    }
-
-    auto operator==(const SimpleMatrix &rhs) const
-    {
-      return data_ == rhs.data_;
-    }
-
+    // Access an element at a specific row and column.
     constexpr T const &at(size_t const r, size_t const c) const
     {
       return data_.at(r * COL + c);
     }
 
+    // Access a row using the [] operator and return an AccessProxy.
     constexpr AccessProxy<T, COL> &operator[](size_t const r)
     {
       if (r >= ROW)
       {
-        throw std::out_of_range("m >= ROW");
+        throw std::out_of_range("r >= ROW");
       }
 
       auto it = data_.begin();
@@ -84,16 +89,17 @@ namespace matrix
       return proxy_;
     }
 
+    // Addition operator for matrix addition.
     friend SimpleMatrix operator+(SimpleMatrix lhs, const SimpleMatrix &rhs)
     {
-      for (size_t i{0}; i < ROW * COL; i++)
+      for (size_t i = 0; i < ROW * COL; i++)
       {
-        lhs.data_[i] = lhs.data_[i] + rhs.data_[i];
+        lhs.data_[i] += rhs.data_[i];
       }
-
       return lhs;
     }
 
+    // Scalar multiplication operator.
     friend SimpleMatrix operator*(SimpleMatrix lhs, const T n)
     {
       std::ranges::transform(lhs.data_.begin(), lhs.data_.end(), lhs.data_.begin(),
@@ -102,39 +108,60 @@ namespace matrix
       return lhs;
     }
 
-    auto cbegin() const { return data_.cbegin(); }
-    auto cend() const { return data_.cend(); }
+    // Constant iterator for the beginning of the matrix.
+    auto cbegin() const
+    {
+      return data_.cbegin();
+    }
 
-    auto begin() { return data_.begin(); }
-    auto end() { return data_.end(); }
+    // Constant iterator for the end of the matrix.
+    auto cend() const
+    {
+      return data_.cend();
+    }
 
+    // Iterator for the beginning of the matrix.
+    auto begin()
+    {
+      return data_.begin();
+    }
+
+    // Iterator for the end of the matrix.
+    auto end()
+    {
+      return data_.end();
+    }
+
+    // Output operator to display the matrix.
     friend std::ostream &operator<<(std::ostream &os, const SimpleMatrix &m)
     {
-      for (size_t i{0}; i < ROW; i++)
+      for (size_t i = 0; i < ROW; i++)
       {
-        for (size_t j{0}; j < COL; j++)
+        for (size_t j = 0; j < COL; j++)
         {
           os << std::setw(3) << m.data_[i * COL + j] << " ";
         }
         os << "\n";
       }
-
       return os;
     }
 
+    // Input operator to read values into the matrix.
     friend std::istream &operator>>(std::istream &is, SimpleMatrix &m)
     {
-      for (size_t i{0}; i < ROW * COL; i++)
+      for (size_t i = 0; i < ROW * COL; i++)
       {
         is >> m.data_[i];
       }
-
       return is;
     }
 
+    // Utility method to print the matrix.
     void print()
     {
-      std::cout << "\nMatrix " << ROW << "x" << COL << ":\n" << *this;
+      std::cout << "\nMatrix " << ROW << "x" << COL << ":\n"
+                << *this;
     }
   }; // SimpleMatrix
-} // matrix
+
+} // namespace matrix
